@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-
+import 'package:uuid/uuid.dart';
 import '../../models/grocery.dart';
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
+
 
   @override
   State<NewItem> createState() {
     return _NewItemState();
   }
 }
+const uuid = Uuid();
 
 class _NewItemState extends State<NewItem> {
 
@@ -41,12 +43,32 @@ class _NewItemState extends State<NewItem> {
     _quantityController.dispose();
   }
 
-  void onReset() {
+  void onReset() { //awork
+    setState(() {
     // Will be implemented later - Reset all fields to the initial values
+      _nameController.text = defautName;
+      _quantityController.text = defaultQuantity.toString();
+      _selectedCategory = defaultCategory;
+    });
   }
 
-  void onAdd() {
+  void onAdd() { //work
     // Will be implemented later - Create and return the new grocery
+    final enteredName = _nameController.text.trim();
+    final enteredQuantity = int.tryParse(_quantityController.text);
+
+    if (enteredName.isEmpty || enteredQuantity == null ||  enteredQuantity <= 0) {
+      return;
+    }
+
+    final grocery = Grocery(
+      id: uuid.v4(),
+      name: enteredName,
+      quantity: enteredQuantity,
+      category: _selectedCategory,
+    );
+
+    Navigator.of(context).pop(grocery);
   }
 
   @override
@@ -74,9 +96,25 @@ class _NewItemState extends State<NewItem> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: DropdownButtonFormField<GroceryCategory>(
+
+                  child: DropdownButtonFormField<GroceryCategory>( //drop down finish
                     initialValue: _selectedCategory,
-                    items: [  ],
+                    items: GroceryCategory.values.map((category) {
+                      return DropdownMenuItem<GroceryCategory>(
+                        value: category,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 15,
+                              height: 15,
+                              color: category.color,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(category.label),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                     onChanged: (value) {
                       if (value != null) {
                         setState(() {
@@ -88,6 +126,7 @@ class _NewItemState extends State<NewItem> {
                 ),
               ],
             ),
+            
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
